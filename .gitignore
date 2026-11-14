@@ -29,3 +29,6 @@ image.png
 # Local billing exports
 *.csv
 cost*.png
+
+# Build info
+*.tsbuildinfo
