@@ -1,8 +1,8 @@
 # Submission note (draft: edit before sending)
 
 **Links**
-- Host screen (laptop/projector): https://finquiz-live.reazixtechnologies.workers.dev/host
-- Players (phones): https://finquiz-live.reazixtechnologies.workers.dev/ (or scan the QR code on the host screen)
+- Host screen (laptop/projector): https://finquizlive.pages.dev/host
+- Players (phones): https://finquizlive.pages.dev/ (or scan the QR code on the host screen)
 - Code: https://github.com/Kuldip8975/finquiz-live
 
 **What works**

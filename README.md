@@ -1,8 +1,8 @@
 # FinQuiz Live: a live classroom finance quiz
 
 > **Live:**
-> - **Teacher / projector:** https://finquiz-live.reazixtechnologies.workers.dev/host
-> - **Students / phones:** https://finquiz-live.reazixtechnologies.workers.dev/ (or scan the QR code on the projector)
+> - **Teacher / projector:** https://finquizlive.pages.dev/host
+> - **Students / phones:** https://finquizlive.pages.dev/ (or scan the QR code on the projector)
 
 A teacher opens `/host` on the projector, students join on their phones with
 the room code, and everyone plays five personal finance questions with a
@@ -118,9 +118,9 @@ Manual route:
 ```bash
 cd frontend
 VITE_SERVER_URL=https://api.<ip-with-dashes>.sslip.io npm run build   # also writes dist/_headers (CSP)
-npx wrangler deploy                                                    # settings in wrangler.jsonc
+npx wrangler pages deploy                                              # settings in wrangler.jsonc
 ```
-Unknown paths are served `index.html` (`not_found_handling: single-page-application`), so `/host` works as a page.
+Cloudflare Pages serves `index.html` for unknown paths (there is no `404.html`), so `/host` works as a page.
 ## Project layout
 
 ```

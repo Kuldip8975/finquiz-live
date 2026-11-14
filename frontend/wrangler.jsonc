@@ -1,13 +1,9 @@
-// Cloudflare (Workers static assets) settings for the frontend.
-// Deploy:  VITE_SERVER_URL=https://<backend> npm run build && npx wrangler deploy
+// Cloudflare Pages settings for the frontend (project: finquizlive).
+// Deploy:  VITE_SERVER_URL=https://<backend> npm run build && npx wrangler pages deploy
+// Any unknown path (like /host) is served index.html because there is no
+// 404.html, so the React app decides which screen to show.
 {
-  "name": "finquiz-live",
-  "compatibility_date": "2026-11-13",
-  "assets": {
-    // The built site. Any unknown path (like /host) is served index.html,
-    // so the React app decides which screen to show.
-    "directory": "./dist",
-    "not_found_handling": "single-page-application"
-  },
-  "observability": { "enabled": true }
+  "name": "finquizlive",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-11-13"
 }
