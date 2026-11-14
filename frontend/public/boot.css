@@ -1,0 +1,5 @@
+/* Only used before the app has loaded, or if it fails to load. */
+#boot { font-family: system-ui, sans-serif; text-align: center; padding: 48px 16px; color: #0f1b33; }
+#boot button { font-size: 18px; padding: 12px 24px; margin-top: 16px; border-radius: 10px;
+               border: 0; background: #0f766e; color: #fff; }
+@media (prefers-color-scheme: dark) { body { background: #0b1222; } #boot { color: #e8edf6; } }

@@ -1,0 +1,25 @@
+# Caddy gets and renews a free HTTPS certificate for API_DOMAIN automatically.
+# HTTPS is required: the frontend is served over https, so sockets must be wss.
+# Caddy ignores any X-Forwarded-For sent by a client and sets the real client
+# IP itself, which the backend uses for rate limits (TRUST_PROXY=1).
+
+{$API_DOMAIN} {
+	encode gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+
+	# Only the socket endpoint and the health check exist. Everything else 404s.
+	@allowed path /socket.io/* /healthz
+	handle @allowed {
+		reverse_proxy backend:5000
+	}
+	handle {
+		respond "Not found" 404
+	}
+}

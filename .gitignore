@@ -1,0 +1,31 @@
+# Secrets: never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.db
+
+# Node
+node_modules/
+dist/
+.wrangler/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local brief and screenshots (not part of the app)
+*.pdf
+image.png
+
+# Local billing exports
+*.csv
+cost*.png

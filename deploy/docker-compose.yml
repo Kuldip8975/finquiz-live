@@ -1,0 +1,80 @@
+# Runs on the EC2 server (t3.micro, 1 GB RAM + 2 GB swap): Postgres + the quiz
+# backend + Caddy (automatic HTTPS).
+# Secrets come from deploy/.env on the server, which is never committed.
+#
+# Only Caddy is reachable from the internet (ports 80/443). Postgres and the
+# backend are on a private Docker network with no published ports.
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    command: ["postgres", "-c", "shared_buffers=64MB", "-c", "max_connections=30"]
+    environment:
+      POSTGRES_DB: quiz
+      POSTGRES_USER: quiz
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quiz -d quiz"]
+      interval: 5s
+      retries: 10
+    networks: [internal]
+    logging: *logging
+    mem_limit: 320m
+    security_opt: ["no-new-privileges:true"]
+
+  backend:
+    build: ../backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://quiz:${POSTGRES_PASSWORD}@db:5432/quiz
+      CORS_ORIGINS: ${CORS_ORIGINS:?set CORS_ORIGINS in deploy/.env}
+      QUESTION_SECONDS: ${QUESTION_SECONDS:-20}
+      TRUST_PROXY: "1"
+    networks: [internal]
+    logging: *logging
+    mem_limit: 450m
+    read_only: true
+    tmpfs: ["/tmp"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      API_DOMAIN: ${API_DOMAIN:?set API_DOMAIN in deploy/.env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [internal]
+    logging: *logging
+    mem_limit: 128m
+    security_opt: ["no-new-privileges:true"]
+
+networks:
+  internal:
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

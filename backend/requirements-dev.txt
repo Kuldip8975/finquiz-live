@@ -1,0 +1,7 @@
+-r requirements.txt
+python-socketio[client]==5.18.1
+requests
+websocket-client
+pytest
+ruff
+pip-audit
