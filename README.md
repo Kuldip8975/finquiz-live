@@ -1,8 +1,8 @@
 # FinQuiz Live: a live classroom finance quiz
 
-> **Two addresses:**
-> - **Teacher / projector:** `https://<site>/host`
-> - **Students / phones:** `https://<site>/` (or scan the QR code on the projector)
+> **Live:**
+> - **Teacher / projector:** https://finquiz-live.reazixtechnologies.workers.dev/host
+> - **Students / phones:** https://finquiz-live.reazixtechnologies.workers.dev/ (or scan the QR code on the projector)
 
 A teacher opens `/host` on the projector, students join on their phones with
 the room code, and everyone plays five personal finance questions with a
@@ -99,6 +99,9 @@ CI (`.github/workflows/ci.yml`) runs all of the above on every push, plus a gitl
 ## Deploy
 
 ### Backend on EC2
+Quickest: launch the instance with `deploy/user-data.sh` as its *User data*. On first boot it installs Docker, clones this repo, writes `deploy/.env` with a random database password, and starts everything with HTTPS on `api.<ip-with-dashes>.sslip.io`. No SSH key is needed: use **EC2 Instance Connect** in the console for later changes.
+
+Manual route:
 1. Launch an Ubuntu 24.04 **t3.micro** (or t3.small) in `ap-south-1`:
    - Require IMDSv2.
    - Use a key pair for SSH (no passwords).
@@ -111,13 +114,13 @@ CI (`.github/workflows/ci.yml`) runs all of the above on every push, plus a gitl
    - asks you to set `API_DOMAIN` and `CORS_ORIGINS`.
 4. Check: `curl https://api.yourdomain.com/healthz` should return `{"ok": true}`.
 
-### Frontend on Cloudflare Pages
+### Frontend on Cloudflare
 ```bash
 cd frontend
-VITE_SERVER_URL=https://api.yourdomain.com npm run build   # also writes dist/_headers (CSP)
-npx wrangler pages deploy dist --project-name finquiz-live
+VITE_SERVER_URL=https://api.<ip-with-dashes>.sslip.io npm run build   # also writes dist/_headers (CSP)
+npx wrangler deploy                                                    # settings in wrangler.jsonc
 ```
-
+Unknown paths are served `index.html` (`not_found_handling: single-page-application`), so `/host` works as a page.
 ## Project layout
 
 ```

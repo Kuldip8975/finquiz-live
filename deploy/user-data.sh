@@ -11,7 +11,7 @@
 set -euxo pipefail
 
 REPO=https://github.com/Kuldip8975/finquiz-live.git
-FRONTEND_ORIGIN=https://finquiz-live.pages.dev
+FRONTEND_ORIGIN=https://finquiz-live.reazixtechnologies.workers.dev
 
 # 2 GB swap: a t3.micro has only 1 GB of RAM.
 if ! swapon --show | grep -q /swapfile; then

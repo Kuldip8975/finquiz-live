@@ -1,6 +1,9 @@
 # Submission note (draft: edit before sending)
 
-**Links:** host screen (projector): `https://<site>/host` · players (phones): `https://<site>/`, or scan the QR code on the host screen.
+**Links**
+- Host screen (laptop/projector): https://finquiz-live.reazixtechnologies.workers.dev/host
+- Players (phones): https://finquiz-live.reazixtechnologies.workers.dev/ (or scan the QR code on the host screen)
+- Code: https://github.com/Kuldip8975/finquiz-live
 
 **What works**
 - The full flow from the brief: room code (plus QR), join with code and name, five questions with a 20-second server-side timer, the correct answer and leaderboard on the host after each question, and the final ranking.
