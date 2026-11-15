@@ -544,3 +544,13 @@ body:has(.tone-none) { background: linear-gradient(180deg, var(--tint-none) 0%, 
 .move { font-size: 14px; font-weight: 800; margin-left: 8px; padding: 2px 8px; border-radius: 999px; }
 .move.up { color: var(--good-ink); background: var(--good-soft); }
 .move.down { color: var(--bad-ink); background: var(--bad-soft); }
+
+/* Players can't select or long-press-copy the question and options, so it
+   isn't a one-tap copy into a search engine during the 20 seconds. (They could
+   still type it; the timer and speed bonus are the real deterrent.) */
+.page.player .q-text,
+.page.player .options {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
