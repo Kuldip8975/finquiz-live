@@ -51,4 +51,7 @@ export interface PlayerView extends BaseView {
   pointsGained?: number;
   score?: number;
   rank?: number;
+  // Is the teacher's screen connected? If not, since when (server time, ms).
+  hostOnline?: boolean;
+  hostAwaySince?: number;
 }

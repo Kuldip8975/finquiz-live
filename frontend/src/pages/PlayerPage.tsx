@@ -12,6 +12,8 @@ import { StatusBanner } from "../components/StatusBanner";
 import { LETTERS } from "../components/letters";
 
 const KEY = "quiz.player";
+const HOST_GRACE_MS = 5000; // ignore a quick host refresh
+const HOST_LEFT_MS = 10 * 60 * 1000; // after this, tell the player the quiz has stopped
 interface Saved {
   code: string;
   token: string;
@@ -100,6 +102,19 @@ export function PlayerPage() {
     clear(KEY);
     setView(null);
   }
+
+  // The teacher's screen may close (tab shut, laptop asleep). The game waits
+  // for it, but the phone must say so instead of looking frozen (rule 4).
+  const [clock, setClock] = useState(() => Date.now());
+  const hostMissing = view !== null && view.hostOnline === false && view.phase !== "finished";
+  useEffect(() => {
+    if (!hostMissing) return;
+    const id = setInterval(() => setClock(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [hostMissing]);
+  const awayMs = hostMissing && view?.hostAwaySince ? clock + offset - view.hostAwaySince : 0;
+  const hostLeft = hostMissing && awayMs > HOST_LEFT_MS;
+  const hostAway = hostMissing && awayMs > HOST_GRACE_MS && !hostLeft;
 
   let body;
   if (!view && resuming) {
@@ -221,6 +236,30 @@ export function PlayerPage() {
     );
   }
 
+  if (view && hostLeft) {
+    body = (
+      <div className="card center-text fade-in" role="status">
+        <div className="result-icon none" aria-hidden>
+          ⏸
+        </div>
+        <h1>The teacher has left this quiz</h1>
+        <p className="muted">
+          The host screen has been closed for a while, so the quiz can't continue right now.
+          {view.score != null && (
+            <>
+              {" "}
+              You finished with <strong>{view.score.toLocaleString()}</strong> points.
+            </>
+          )}
+        </p>
+        <p className="muted small">If the teacher reopens it, this screen will carry on by itself.</p>
+        <button className="btn secondary" onClick={leave}>
+          Join another game
+        </button>
+      </div>
+    );
+  }
+
   const progress =
     view && (view.phase === "question" || view.phase === "reveal") ? (
       <ProgressDots current={view.questionIndex} total={view.totalQuestions} />
@@ -240,6 +279,12 @@ export function PlayerPage() {
       <Brand right={progress} />
       <StatusBanner status={status} retry={retry} />
       {error && <ErrorPanel message={error.message} onRetry={error.retry} />}
+      {hostAway && (
+        <div className="banner" role="status">
+          <span className="spinner" aria-hidden />
+          <span>The teacher's screen disconnected. Waiting for it to come back…</span>
+        </div>
+      )}
       {body}
     </main>
   );

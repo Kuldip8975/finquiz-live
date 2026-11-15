@@ -148,12 +148,61 @@ def current(role: str) -> dict:
     return conn
 
 
+# ------------------------------------------------------- host presence
+#
+# If the teacher's screen closes, the game itself carries on (the teacher can
+# reopen /host and continue). But the phones must not sit on "Next question
+# coming up…" forever without knowing why (rule 4), so every player view says
+# whether a host screen is connected and, if not, since when.
+
+HOST_GRACE_SECONDS = 5  # a refresh reconnects well within this
+host_away_since: dict[str, float] = {}  # room code -> when its last host screen left
+
+
+def host_online(code: str) -> bool:
+    with connections_lock:
+        return any(c.get("role") == "host" and c.get("code") == code for c in connections.values())
+
+
+def presence(code: str) -> dict:
+    if host_online(code):
+        return {"hostOnline": True}
+    since = host_away_since.setdefault(code, time.time())
+    return {"hostOnline": False, "hostAwaySince": int(since * 1000)}
+
+
+def player_state(player_id: int, code: str) -> dict:
+    return {**game.player_view(player_id), **presence(code)}
+
+
+def host_left(code: str):
+    """The last host screen of a room disconnected. Tell the phones, unless it
+    was just a refresh and the host is back within the grace period."""
+    host_away_since.setdefault(code, time.time())
+
+    def check():
+        socketio.sleep(HOST_GRACE_SECONDS + 0.5)
+        if not host_online(code):
+            try:
+                broadcast(code)
+            except game.GameError:
+                pass  # the room no longer exists
+
+    socketio.start_background_task(check)
+
+
+def host_back(code: str):
+    if host_away_since.pop(code, None) is not None:
+        broadcast(code)  # clear the "waiting for the teacher" message
+
+
 def broadcast(code: str):
     """Send each screen in the room its own up-to-date view."""
     host, players = game.room_views(code)
     socketio.emit("state", host, to=f"host:{code}")
+    here = presence(code)
     for pid, view in players.items():
-        socketio.emit("state", view, to=f"player:{pid}")
+        socketio.emit("state", {**view, **here}, to=f"player:{pid}")
 
 
 def schedule_close(code: str, question_index: int, ends_at: float):
@@ -181,6 +230,9 @@ def housekeeping():
             if removed:
                 log.info("deleted %d expired games", removed)
             limiter.prune()
+            cutoff = time.time() - config.GAME_TTL_HOURS * 3600
+            for code in [c for c, t in host_away_since.items() if t < cutoff]:
+                host_away_since.pop(code, None)
         except Exception:
             log.exception("housekeeping failed")
 
@@ -210,6 +262,8 @@ def on_disconnect(*_):
             connections_per_ip[conn["ip"]] -= 1
             if connections_per_ip[conn["ip"]] <= 0:
                 del connections_per_ip[conn["ip"]]
+    if conn and conn.get("role") == "host" and not host_online(conn["code"]):
+        host_left(conn["code"])
 
 
 # ---------------------------------------------------------------- host events
@@ -229,6 +283,7 @@ def host_resume(data):
     guard_lookups()
     code = game.check_host(data.get("code"), data.get("hostToken"))
     attach("host", code)
+    host_back(code)
     return {"state": game.host_view(code)}
 
 
@@ -253,7 +308,7 @@ def player_join(data):
     player_id, token, code = game.join_game(data.get("code"), data.get("name"))
     attach("player", code, player_id)
     broadcast(code)  # the host's lobby list updates
-    return {"token": token, "state": game.player_view(player_id)}
+    return {"token": token, "state": player_state(player_id, code)}
 
 
 @event("player:resume")
@@ -261,7 +316,7 @@ def player_resume(data):
     guard_lookups()
     player_id, code = game.find_player(data.get("code"), data.get("token"))
     attach("player", code, player_id)
-    return {"state": game.player_view(player_id)}
+    return {"state": player_state(player_id, code)}
 
 
 @event("player:answer")
@@ -274,7 +329,7 @@ def player_answer(data):
     else:
         # Only the host needs to know the answered count went up.
         socketio.emit("state", game.host_view(conn["code"]), to=f"host:{conn['code']}")
-    return {"state": game.player_view(conn["player_id"])}
+    return {"state": player_state(conn["player_id"], conn["code"])}
 
 
 # ---------------------------------------------------------------------- boot

@@ -217,6 +217,22 @@ def main():
             leaked |= "Player 1" in body
         check("no web address shows names or scores", not leaked)
 
+        # Rule 4: if the teacher's screen closes, phones are told (not frozen),
+        # and the message clears when the teacher comes back.
+        teacher = Screen()
+        made = teacher.call("host:create")
+        student = Screen()
+        student.call("player:join", {"code": made["code"], "name": "Presence"})
+        check("phones know the host is connected", student.state.get("hostOnline") is True)
+        teacher.close()
+        told = wait_for(lambda: student.state.get("hostOnline") is False and student.state.get("hostAwaySince"), timeout=10)
+        check("phones are told when the host screen closes", told)
+        teacher = Screen()
+        teacher.call("host:resume", {"code": made["code"], "hostToken": made["hostToken"]})
+        check("the message clears when the host comes back", wait_for(lambda: student.state.get("hostOnline") is True, timeout=5))
+        teacher.close()
+        student.close()
+
         # ---- attacks
         evil = socketio.Client(reconnection=False)
         try:

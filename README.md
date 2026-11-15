@@ -38,7 +38,7 @@ after each question, and the final ranking at the end.
 | **1. Answers stay on the server** | Questions exist only in `backend/questions.py`. The views in `game.py` add `correctIndex` and the explanation only once the question has closed. The timer runs on the server, and late answers are refused. Phones also get no score while a question is open, because a jump in score would give the answer away. CI checks that the built JS bundle contains no answers. | `test_open_question_views_never_contain_the_answer`, e2e "answer not sent before close" (records every byte each phone receives) |
 | **2. Ten players at once** | Socket.IO starts on long-polling and upgrades to WebSocket, so it works on mobile data and strict Wi-Fi. One lock means simultaneous answers are counted once. A room update is built from one snapshot (3 queries, whatever the player count). The JS bundle is about 75 KB gzipped. The backend runs on always-on EC2, so it never sleeps. | e2e plays a full game with 10 real socket clients |
 | **3. Refresh keeps the player** | A random token (in `localStorage`) is sent again on every reconnect, and the server restores the same player and score. Phones re-sync as soon as they come back from another app or a locked screen, and the screen is kept awake during the game. State lives in Postgres, and running timers restart after a server restart. | e2e: refresh mid-question, and a full server restart mid-game |
-| **4. No frozen screens** | A status banner shows connecting / reconnecting / can't reach server + Retry. Every request times out after 8 seconds with a message and a Try again button. An error boundary covers render crashes, and `boot.js` covers a bundle that never loads. | manual: kill the backend while playing |
+| **4. No frozen screens** | A status banner shows connecting / reconnecting / can't reach server + Retry. Every request times out after 8 seconds with a message and a Try again button. An error boundary covers render crashes, and `boot.js` covers a bundle that never loads. If the teacher's screen closes, phones say so after 5 seconds (and, after 10 minutes, that the quiz has stopped) instead of sitting on "Next question coming up…"; the message clears when the teacher reopens `/host`. | e2e: host screen closes and comes back; manual: kill the backend while playing |
 | **5. No secrets in the code** | Nothing in the repository is a secret, including CI, where Postgres uses trust auth. The DB password is generated on the server into git-ignored `deploy/.env`. **gitleaks** scans the whole git history in CI and in a pre-commit hook. | CI job "Secret scan" |
 | **6. Scores are not public** | No HTTP route returns data (Caddy only exposes `/socket.io` and `/healthz`). The full leaderboard goes only to a socket that proved it holds the host token, and each phone gets only its own score and rank. Games are deleted after 12 hours. | `test_player_views_never_contain_other_players`, e2e probes URLs |
 
@@ -82,7 +82,7 @@ npm run dev                   # http://localhost:5173  (host screen: /host)
 ```bash
 cd backend
 pytest -q                        # 50 unit tests (game rules, name spoofing, what each screen may see)
-python tests/e2e_check.py        # 60 end-to-end checks: real server, host + 10 players, attacks
+python tests/e2e_check.py        # 63 end-to-end checks: real server, host + 10 players, attacks
 ruff check . && pip-audit -r requirements.txt
 
 cd ../frontend
