@@ -32,6 +32,11 @@ def check(name, condition, detail=""):
 
 
 def start_server(db_path):
+    try:
+        urllib.request.urlopen(URL + "/healthz", timeout=1)
+        raise RuntimeError(f"port {PORT} is already in use (an old test server?). Stop it and run again.")
+    except OSError:
+        pass  # nothing listening: good
     env = {
         **os.environ,
         "QUESTION_SECONDS": str(SECONDS),
