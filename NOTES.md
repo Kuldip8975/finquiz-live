@@ -28,4 +28,4 @@
 - I have read and run every part, and I can explain and change any file.
 
 **One thing I'd change with another week**
-- Real-device load tests (50+ phones on throttled 3G) plus monitoring: error tracking, uptime checks and nightly Postgres backups to S3.
+- Test it with a full classroom: 50+ real phones on slow mobile data, to see how quickly every phone gets each question and whether anyone drops out. So far I have tested with 5 real phones and 10 simulated players.
