@@ -321,7 +321,7 @@ function JoinForm({ online, onJoined }: { online: boolean; onJoined: (token: str
           <span className="coin c2">₹</span>
           <span className="coin c3">₹</span>
         </div>
-        <p className="hero-line">5 quick money questions · 20 seconds each</p>
+        <p className="hero-line">Quick money questions, against the clock</p>
       </div>
     <form className="card join fade-in" onSubmit={submit}>
       <h1>Join the quiz</h1>
