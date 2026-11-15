@@ -7,7 +7,8 @@
 
 **What works**
 - The full flow from the brief: room code (plus QR), join with code and name, five questions with a 20-second server-side timer, the correct answer and leaderboard on the host after each question, and the final ranking.
-- All six rules, each with automated tests: 36 unit tests and 58 end-to-end checks with a host and ten real socket clients.
+- All six rules, each with automated tests: 50 unit tests and 60 end-to-end checks with a host and ten real socket clients. The same 15 requirement checks also pass against the live site.
+- Tested on real phones: _(fill in: how many phones, mobile data or Wi-Fi, what you tried)_.
   - Answers never reach a phone before the question closes.
   - Refresh, app-switching and even a full server restart keep players and scores.
   - Every failure shows a message and a retry button.

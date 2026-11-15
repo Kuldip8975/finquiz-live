@@ -59,7 +59,7 @@ after each question, and the final ranking at the end.
 - **Headers:** a strict CSP (`script-src 'self'`, connect only to our backend, no inline code), HSTS, `X-Frame-Options: DENY`, nosniff, no-referrer and Permissions-Policy, from Cloudflare (`dist/_headers`) and Caddy.
 - **Containers:** they run as a non-root user with a read-only filesystem, all capabilities dropped, `no-new-privileges`, memory limits, log rotation and health checks. Postgres and the backend have no public port.
 - **Supply chain:** Python dependencies are pinned exactly. `pip-audit`, `npm audit` and Dependabot run weekly.
-- **Server:** security updates install automatically (`unattended-upgrades`), and only ports 22 (your IP), 80 and 443 are open.
+- **Server:** security updates install automatically (`unattended-upgrades`). Ports 80 and 443 are open to everyone. Port 22 is open only to AWS EC2 Instance Connect (no SSH key exists for this server).
 
 ## Run it locally
 
@@ -81,8 +81,8 @@ npm run dev                   # http://localhost:5173  (host screen: /host)
 
 ```bash
 cd backend
-pytest -q                        # 36 unit tests (game rules, what each screen may see)
-python tests/e2e_check.py        # 58 end-to-end checks: real server, host + 10 players, attacks
+pytest -q                        # 50 unit tests (game rules, name spoofing, what each screen may see)
+python tests/e2e_check.py        # 60 end-to-end checks: real server, host + 10 players, attacks
 ruff check . && pip-audit -r requirements.txt
 
 cd ../frontend
@@ -121,6 +121,7 @@ VITE_SERVER_URL=https://api.<ip-with-dashes>.sslip.io npm run build   # also wri
 npx wrangler pages deploy                                              # settings in wrangler.jsonc
 ```
 Cloudflare Pages serves `index.html` for unknown paths (there is no `404.html`), so `/host` works as a page.
+
 ## Project layout
 
 ```
@@ -138,6 +139,6 @@ frontend/
   src/useWakeLock.ts     keep the phone screen on during the game
   src/pages/             HostPage (projector), PlayerPage (phone)
   scripts/write-headers.mjs  security headers for Cloudflare
-deploy/          docker-compose, Caddyfile, EC2 setup script
+deploy/          docker-compose, Caddyfile, EC2 user-data (one-step setup), manual setup script
 .github/         CI + Dependabot
 ```
