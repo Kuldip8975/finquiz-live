@@ -28,4 +28,4 @@
 - I have read and run every part, and I can explain and change any file.
 
 **One thing I'd change with another week**
-- Test it with a full classroom: 50+ real phones on slow mobile data, to see how quickly every phone gets each question and whether anyone drops out. So far I have tested with 5 real phones and 10 simulated players.
+- Test it at real scale: 100+ phones on slow mobile data across two or three classrooms at once (each room holds up to 60), to see how quickly every phone gets each question and whether anyone drops out. So far I have tested with 5 real phones and 10 simulated players.
